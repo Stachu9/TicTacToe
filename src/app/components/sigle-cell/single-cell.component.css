@@ -1,0 +1,19 @@
+.cell {
+  height: 100px;
+  width: 100px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid black;
+}
+.cell.p1::after, .cell.p2::after {
+  position: absolute;
+  left: calc(50% - 18px);
+  top: calc(50% - 30px);
+  font-size: 50px;
+}
+.cell.p1::after {
+  content: 'O';
+}
+.cell.p2::after {
+  content: 'X';
+}

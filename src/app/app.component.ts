@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
+import {CellState} from "./components/sigle-cell/cell-state";
 
 @Component({
   selector: 'app-root',
