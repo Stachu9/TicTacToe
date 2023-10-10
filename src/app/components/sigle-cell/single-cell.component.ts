@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, Output, SimpleChange} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {CellState} from "./cell-state";
 
 @Component({

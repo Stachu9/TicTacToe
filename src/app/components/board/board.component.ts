@@ -8,14 +8,33 @@ import {CellState} from "../sigle-cell/cell-state";
 })
 export class BoardComponent {
 
-transmitter : CellState = CellState.EMPTY;
-  setCellState() {
-    if (this.transmitter === CellState.EMPTY) {
-      this.transmitter = CellState.PLAYER1;
-    } else if (this.transmitter === CellState.PLAYER1) {
-      this.transmitter = CellState.PLAYER2;
+  boardState : CellState[][];
+
+  // TODO: convert into injection token
+  boardDimensions = {
+    height: 3,
+    width: 3
+  }
+
+  constructor()
+  {
+    this.boardState = [];
+    for (let i = 0; i < this.boardDimensions.height; i++) {
+      this.boardState[i] = [];
+      for (let j = 0; j < this.boardDimensions.width; j++) {
+       this.boardState[i][j] = CellState.EMPTY;
+      }
+    }
+  }
+
+  selectCell(i : number, j : number) {
+    if (this.boardState[i][j] === CellState.EMPTY) {
+      console.log(i, j)
+      this.boardState[i][j] = CellState.PLAYER1;
+    } else if (this.boardState[i][j] === CellState.PLAYER1) {
+      this.boardState[i][j] = CellState.PLAYER2;
     } else {
-      this.transmitter = CellState.EMPTY;
+      this.boardState[i][j] = CellState.EMPTY;
     }
   }
 }
