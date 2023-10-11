@@ -1,35 +1,25 @@
-import {Component} from '@angular/core';
-import {CellState} from "../sigle-cell/cell-state";
+import {Component, OnInit} from '@angular/core';
+import {CellState} from "../../services/game-engine/cell-state";
+import {GameEngineService} from "../../services/game-engine/game-engine.service";
 
 @Component({
   selector: 'app-board',
   templateUrl: './board.component.html',
   styleUrls: ['./board.component.css']
 })
-export class BoardComponent {
+export class BoardComponent implements OnInit {
 
-  boardState : CellState[][];
+  constructor(
+    private gameEngineService: GameEngineService
+  ) {}
 
-  // TODO: convert into injection token
-  boardDimensions = {
-    height: 3,
-    width: 3
+  ngOnInit(): void {
+    this.gameEngineService.initialize();
   }
 
-  constructor()
-  {
-    this.boardState = [];
-    for (let i = 0; i < this.boardDimensions.height; i++) {
-      this.boardState[i] = [];
-      for (let j = 0; j < this.boardDimensions.width; j++) {
-       this.boardState[i][j] = CellState.EMPTY;
-      }
-    }
-  }
 
   selectCell(i : number, j : number) {
     if (this.boardState[i][j] === CellState.EMPTY) {
-      console.log(i, j)
       this.boardState[i][j] = CellState.PLAYER1;
     } else if (this.boardState[i][j] === CellState.PLAYER1) {
       this.boardState[i][j] = CellState.PLAYER2;

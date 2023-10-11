@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {CellState} from "./cell-state";
+import {CellState} from "../../services/game-engine/cell-state";
 
 @Component({
   selector: 'app-single-cell',

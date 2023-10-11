@@ -1,0 +1,8 @@
+export enum GameState {
+  BEGINNING,
+  INPROGRESS,
+  PLAYERWIN,
+  COMPWIN,
+  DRAW,
+  WAITING_FOR_INIT
+}
