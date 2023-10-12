@@ -1,5 +1,5 @@
 <div class="gameWrapper">
-    <div class ="row" *ngFor="let row of boardState; index as i;">
-        <app-single-cell *ngFor="let cell of row; index as j" (selected)="selectCell(i, j)" [state]=cell></app-single-cell>
+    <div class ="row" *ngFor="let row of state.boardState; index as i;">
+        <app-single-cell *ngFor="let cell of row; index as j" (selected)="selectCell({row: i, column: j})" [state]=cell></app-single-cell>
     </div>
 </div>

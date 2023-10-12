@@ -2,16 +2,19 @@ import {Injectable} from '@angular/core';
 import {CellState} from "./cell-state";
 import {GameState} from "./game-state";
 import {State} from "./state";
+import {Observable, Subject} from "rxjs";
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameEngineService {
 
-  state: State = {
-    boardState : [],
-    gameState : GameState.WAITING_FOR_INIT
-  };
+  state = new Subject<State>();
+
+   //state: State = {
+   //  boardState : [],
+   //  gameState : GameState.WAITING_FOR_INIT
+   //};
 
   // TODO: convert into injection token
   boardDimensions = {
@@ -19,24 +22,30 @@ export class GameEngineService {
     width: 3
   }
 
+
   initialize()
   {
-    this.state.boardState = [];
+    const state: State = {
+       boardState : [],
+       gameState : GameState.WAITING_FOR_INIT
+    };
+    state.boardState = [];
     for (let i = 0; i < this.boardDimensions.height; i++) {
-      this.state.boardState[i] = [];
+      state.boardState[i] = [];
       for (let j = 0; j < this.boardDimensions.width; j++) {
-        this.state.boardState[i][j] = CellState.EMPTY;
+        state.boardState[i][j] = CellState.EMPTY;
       }
     }
-    this.state.gameState = GameState.BEGINNING;
+    state.gameState = GameState.BEGINNING;
+    this.state.next(state);
   }
 
-  movePremissibilityCheck(state: State, coordinates) {
-    return (
-      !(
-        state.gameArr[+coordinates.row][+coordinates.col] === CellState.PLAYER1
-      ) &&
-      !(state.gameArr[+coordinates.row][+coordinates.col] === CellState.PLAYER2)
-    );
-  }
+  // movePremissibilityCheck(state: State, coordinates: typeof coordinates) {
+  //   return (
+  //     !(
+  //       state.gameArr[+coordinates.row][+coordinates.col] === CellState.PLAYER1
+  //     ) &&
+  //     !(state.gameArr[+coordinates.row][+coordinates.col] === CellState.PLAYER2)
+  //   );
+  // }
 }
