@@ -9,7 +9,7 @@ import {Activeplayer} from "./activeplayer";
 @Injectable({
   providedIn: 'root'
 })
-export class GameEngineService implements OnInit {
+export class GameEngineService {
 
   public get state$(): Observable<State> {
     return this.stateSubject.asObservable();
@@ -21,15 +21,7 @@ export class GameEngineService implements OnInit {
     activePlayer: Activeplayer.NONE
   });
 
-  constructor() {}
-
-  ngOnInit(): void {
-}
-
-   //state: State = {
-   //  boardState : [],
-   //  gameState : GameState.WAITING_FOR_INIT
-   //};
+  public sendGameState: Observable<GameState> = new Observable<GameState>();
 
   // TODO: convert into injection token
   boardDimensions = {
@@ -37,37 +29,33 @@ export class GameEngineService implements OnInit {
     width: 3
   }
 
-  initialize()
-  {
-    const state: State = {
-       boardState : [],
-       gameState : GameState.INPROGRESS,
+initialize()
+{
+  const boardState: CellState[][] = [];
+  for (let i = 0; i < this.boardDimensions.height; i++) {
+    boardState[i] = [];
+    for (let j = 0; j < this.boardDimensions.width; j++) {
+      boardState[i][j] = CellState.EMPTY;
+    }
+  }
+
+  const state: State = {
+       boardState,
+       gameState: GameState.INPROGRESS,
        activePlayer: Activeplayer.PLAYER1
     };
-    state.boardState = [];
-    for (let i = 0; i < this.boardDimensions.height; i++) {
-      state.boardState[i] = [];
-      for (let j = 0; j < this.boardDimensions.width; j++) {
-        state.boardState[i][j] = CellState.EMPTY;
-      }
-    }
-    state.gameState = GameState.BEGINNING;
     this.stateSubject.next(state);
   }
 
   public makeMove(coordinates: Coordinates) {
     const state = this.stateSubject.value
 
-    // if (state.gameState !== GameState.INPROGRESS) {
-    //   this.showMessage("PRESS STARTBUTTON !!!");
-    //   return;
-    // }
-
     // check if move is allowed
-    if (this.movePremissibilityCheck(state, coordinates)) {
+    if ((this.movePermissibilityCheck(state, coordinates)) && (state.gameState === GameState.INPROGRESS)) {
       // conduct player move (update state)
       this.updateCellStates(state, coordinates);
       this.checkGameState(state, coordinates);
+      this.stateSubject.next(state);
       // finishAlerts(state);
 
       if (state.gameState !== GameState.INPROGRESS) {
@@ -77,24 +65,19 @@ export class GameEngineService implements OnInit {
       // conduct computer move
       if (state.activePlayer === Activeplayer.PLAYER1) {
         state.activePlayer = Activeplayer.PLAYER2;
-        this.makeMove(this.computerMove(state))
+        // TODO: modify setTimeout
+        setTimeout(() => this.makeMove(this.computerMove(state)), 500);
       } else {
         state.activePlayer = Activeplayer.PLAYER1;
         return;
       }
-
-
-
-      // finishAlerts(state);
-      // if (state.gameState !== GameState.INPROGRESS) {
-      //   return;
-      // }
     } else {
       // showMessage("Wrong move, try again");
+      return;
     }
   }
 
-  movePremissibilityCheck(state: State, coordinates: Coordinates) {
+  movePermissibilityCheck(state: State, coordinates: Coordinates) {
     return (
       !(
         state.boardState[coordinates.row][coordinates.column] === CellState.PLAYER1
@@ -112,9 +95,6 @@ export class GameEngineService implements OnInit {
   }
 
   checkGameState(state: State, coordinates: Coordinates): void {
-    // Update state of game array
-
-
     //check if game should continue, or there is a winner
     if (
       state.boardState[0][0] === state.boardState[1][1] &&
@@ -122,12 +102,14 @@ export class GameEngineService implements OnInit {
       state.boardState[1][1] !== CellState.EMPTY
     ) {
       this.getFinalGameState(state.boardState[0][0], state);
+      return;
     } else if (
       state.boardState[0][2] === state.boardState[1][1] &&
       state.boardState[1][1] === state.boardState[2][0] &&
       state.boardState[1][1] !== CellState.EMPTY
     ) {
       this.getFinalGameState(state.boardState[0][2], state);
+      return;
     }
     let y = 0;
     for (let i = 0; i < 3; i++) {
@@ -137,6 +119,7 @@ export class GameEngineService implements OnInit {
         state.boardState[i][1] !== CellState.EMPTY
       ) {
         this.getFinalGameState(state.boardState[i][0], state);
+        return;
       }
       if (
         state.boardState[0][i] === state.boardState[1][i] &&
@@ -144,6 +127,7 @@ export class GameEngineService implements OnInit {
         state.boardState[1][i] !== CellState.EMPTY
       ) {
         this.getFinalGameState(state.boardState[0][i], state);
+        return;
       }
       for (let j = 0; j < 3; j++) {
         if (state.boardState[i][j] !== CellState.EMPTY) {
@@ -152,9 +136,11 @@ export class GameEngineService implements OnInit {
       }
       if (y === 9) {
         state.gameState = GameState.DRAW;
+        return;
       }
     }
     state.gameState = GameState.INPROGRESS;
+    return;
   }
 
   getFinalGameState(winningPlayer: CellState, state: State): void {
@@ -163,12 +149,15 @@ export class GameEngineService implements OnInit {
       state.gameState = GameState.PLAYERWIN;
     } else if (winningPlayer === CellState.PLAYER2) {
       state.gameState = GameState.COMPWIN;
+    } else {
+      throw new Error("getFinalGameState input Error");
     }
-    throw new Error("getFinalGameState input Error");
+
   }
 
   computerMove(state: State) {
     let testWinningMove: Coordinates;
+    let allowedMoves: Coordinates[] = [];
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
         let testState = structuredClone(state);
@@ -176,7 +165,9 @@ export class GameEngineService implements OnInit {
           row: i,
           column: j
         };
-        if (this.movePremissibilityCheck(testState, testWinningMove)) {
+        if (this.movePermissibilityCheck(testState, testWinningMove)) {
+          allowedMoves.push(testWinningMove);
+          this.updateCellStates(testState, testWinningMove);
           this.checkGameState(testState, testWinningMove);
           if (testState.gameState === GameState.COMPWIN) {
             return testWinningMove;
@@ -184,16 +175,7 @@ export class GameEngineService implements OnInit {
         }
       }
     }
-
-    let testCoordinates: Coordinates;
-    do {
-      testCoordinates = {
-        row: Math.floor(Math.random() * 3),
-        column: Math.floor(Math.random() * 3)
-      }
-    } while (!this.movePremissibilityCheck(state, testCoordinates))
-
-    return testCoordinates;
+    return allowedMoves[Math.floor((Math.random()*allowedMoves.length))];
   }
 
 
