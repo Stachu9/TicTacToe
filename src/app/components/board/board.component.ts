@@ -1,11 +1,12 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CellState} from "../../services/game-engine/cell-state";
 import {GameEngineService} from "../../services/game-engine/game-engine.service";
 import {State} from "../../services/game-engine/state";
-import {distinctUntilChanged, map, Observable, Subject, Subscription} from "rxjs";
+import {distinctUntilChanged, map, Observable, Subscription} from "rxjs";
 import {GameState} from "../../services/game-engine/game-state";
 import {Coordinates} from "../../services/game-engine/coordinates";
 import {MessageService} from "../../services/game-engine/message.service";
+import {ActivePlayer} from "../../services/game-engine/activePlayer";
+import {CellState} from "../../services/game-engine/cell-state";
 
 @Component({
   selector: 'app-board',
@@ -15,6 +16,8 @@ import {MessageService} from "../../services/game-engine/message.service";
 export class BoardComponent implements OnInit, OnDestroy {
   state$: Observable<State>;
   private gameStateChangesSub: Subscription;
+  public ActivePlayer = ActivePlayer;
+  public CellState = CellState;
 
   constructor(
     private gameEngineService: GameEngineService,
@@ -29,7 +32,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // this.gameEngineService.state.subscribe((v) => this.state = v);
+    // this.gameEngineService.state$.subscribe((v) => this.state = v);
     this.resetGame();
   }
 
@@ -52,6 +55,11 @@ export class BoardComponent implements OnInit, OnDestroy {
   }
 
   selectCell(coordinates: Coordinates) {
-    this.gameEngineService.makeMove(coordinates);
+      this.gameEngineService.makeMove(coordinates);
   }
+
+  isCellDisabled(cellState: CellState, activePlayer: ActivePlayer) {
+    return (activePlayer === ActivePlayer.PLAYER2 || cellState !== CellState.EMPTY);
+  }
+
 }

@@ -1,10 +1,11 @@
-import {Injectable, OnInit} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {CellState} from "./cell-state";
 import {GameState} from "./game-state";
 import {State} from "./state";
 import {BehaviorSubject, Observable} from "rxjs";
 import {Coordinates} from "./coordinates";
-import {Activeplayer} from "./activeplayer";
+import {ActivePlayer} from "./activePlayer";
+import {GameFlow} from "./game-flow";
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,7 @@ export class GameEngineService {
   private stateSubject = new BehaviorSubject<State>({
     boardState: [],
     gameState: GameState.WAITING_FOR_INIT,
-    activePlayer: Activeplayer.NONE
+    activePlayer: ActivePlayer.NONE
   });
 
   public sendGameState: Observable<GameState> = new Observable<GameState>();
@@ -28,6 +29,8 @@ export class GameEngineService {
     height: 3,
     width: 3
   }
+
+  gameFlow: GameFlow = GameFlow.START;
 
 initialize()
 {
@@ -42,12 +45,18 @@ initialize()
   const state: State = {
        boardState,
        gameState: GameState.INPROGRESS,
-       activePlayer: Activeplayer.PLAYER1
+       activePlayer: ActivePlayer.PLAYER1
     };
+    this.gameFlow = GameFlow.START;
     this.stateSubject.next(state);
   }
 
   public makeMove(coordinates: Coordinates) {
+    if (this.gameFlow === GameFlow.STOP) {
+      return;
+    }
+    this.gameFlow = GameFlow.STOP;
+
     const state = this.stateSubject.value
 
     // check if move is allowed
@@ -56,23 +65,22 @@ initialize()
       this.updateCellStates(state, coordinates);
       this.checkGameState(state, coordinates);
       this.stateSubject.next(state);
-      // finishAlerts(state);
 
       if (state.gameState !== GameState.INPROGRESS) {
         return;
       }
 
-      // conduct computer move
-      if (state.activePlayer === Activeplayer.PLAYER1) {
-        state.activePlayer = Activeplayer.PLAYER2;
+      if (state.activePlayer === ActivePlayer.PLAYER1) {
+        state.activePlayer = ActivePlayer.PLAYER2;
         // TODO: modify setTimeout
         setTimeout(() => this.makeMove(this.computerMove(state)), 500);
+        return;
       } else {
-        state.activePlayer = Activeplayer.PLAYER1;
+        state.activePlayer = ActivePlayer.PLAYER1;
+        this.gameFlow = GameFlow.START;
         return;
       }
     } else {
-      // showMessage("Wrong move, try again");
       return;
     }
   }
@@ -87,7 +95,7 @@ initialize()
   }
 
   updateCellStates(state: State, coordinates: Coordinates): void {
-    if (state.activePlayer === Activeplayer.PLAYER1) {
+    if (state.activePlayer === ActivePlayer.PLAYER1) {
       state.boardState[coordinates.row][coordinates.column] = CellState.PLAYER1;
     } else {
       state.boardState[coordinates.row][coordinates.column] = CellState.PLAYER2;
@@ -156,6 +164,9 @@ initialize()
   }
 
   computerMove(state: State) {
+
+    this.gameFlow = GameFlow.START
+
     let testWinningMove: Coordinates;
     let allowedMoves: Coordinates[] = [];
     for (let i = 0; i < 3; i++) {

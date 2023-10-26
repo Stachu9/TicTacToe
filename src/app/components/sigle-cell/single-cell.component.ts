@@ -9,10 +9,13 @@ import {CellState} from "../../services/game-engine/cell-state";
 export class SingleCellComponent {
   @Output() selected = new EventEmitter();
   @Input() state: CellState = CellState.EMPTY;
+  @Input() disabled: boolean = true;
 
   CellState = CellState;
 
   onSelect() {
-    this.selected.emit();
+    if (!this.disabled) {
+      this.selected.emit();
+    }
   }
 }

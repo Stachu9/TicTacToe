@@ -11,6 +11,11 @@
   top: calc(50% - 30px);
   font-size: 50px;
 }
+
+.cell.disabledCell {
+  cursor: not-allowed;
+}
+
 .cell.p1::after {
   content: 'O';
 }
