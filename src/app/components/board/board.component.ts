@@ -58,8 +58,8 @@ export class BoardComponent implements OnInit, OnDestroy {
       this.gameEngineService.makeMove(coordinates);
   }
 
-  isCellDisabled(cellState: CellState, activePlayer: ActivePlayer) {
-    return (activePlayer === ActivePlayer.PLAYER2 || cellState !== CellState.EMPTY);
+  isCellDisabled(cellState: CellState, activePlayer: ActivePlayer, gameState: GameState) {
+    return (activePlayer === ActivePlayer.PLAYER2 || cellState !== CellState.EMPTY || gameState !== GameState.INPROGRESS);
   }
 
 }

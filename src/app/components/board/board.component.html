@@ -3,7 +3,7 @@
         <app-single-cell *ngFor="let cell of row; index as j"
                          (selected)="selectCell({row: i, column: j})"
                          [state]="cell"
-                         [disabled]="isCellDisabled(cell, state.activePlayer)"></app-single-cell>
+                         [disabled]="isCellDisabled(cell, state.activePlayer, state.gameState)"></app-single-cell>
     </div>
 </div>
 <button class="button" (click)="resetGame()">Reset</button>

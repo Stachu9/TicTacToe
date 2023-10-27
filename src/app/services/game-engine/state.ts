@@ -6,4 +6,5 @@ export interface State {
   gameState: GameState;
   boardState: CellState[][];
   activePlayer: ActivePlayer;
+
 }
