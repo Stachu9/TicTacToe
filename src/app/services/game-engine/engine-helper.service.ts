@@ -87,4 +87,11 @@ export class EngineHelperService {
     }
 
   }
+  activePlayerChange(state: State) {
+    if (state.activePlayer === ActivePlayer.PLAYER1) {
+      state.activePlayer = ActivePlayer.PLAYER2
+    } else {
+      state.activePlayer = ActivePlayer.PLAYER1
+    }
+  }
 }

@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {CellState} from "./cell-state";
 import {GameState} from "./game-state";
 import {State} from "./state";
-import {BehaviorSubject, Observable} from "rxjs";
+import {BehaviorSubject, Observable, of, switchMap} from "rxjs";
 import {Coordinates} from "./coordinates";
 import {ActivePlayer} from "./activePlayer";
 import {EngineHelperService} from "./engine-helper.service";
@@ -34,21 +34,32 @@ export class GameEngineService {
     width: 3
   }
 
-initialize() {
-  const boardState: CellState[][] = [];
-  for (let i = 0; i < this.boardDimensions.height; i++) {
-    boardState[i] = [];
-    for (let j = 0; j < this.boardDimensions.width; j++) {
-      boardState[i][j] = CellState.EMPTY;
+  initialize() {
+    const boardState: CellState[][] = [];
+    for (let i = 0; i < this.boardDimensions.height; i++) {
+      boardState[i] = [];
+      for (let j = 0; j < this.boardDimensions.width; j++) {
+        boardState[i][j] = CellState.EMPTY;
+      }
     }
-  }
-  const state: State = {
-       boardState,
-       gameState: GameState.INPROGRESS,
-       activePlayer: ActivePlayer.PLAYER1
+    const state: State = {
+         boardState,
+         gameState: GameState.INPROGRESS,
+         activePlayer: ActivePlayer.PLAYER1
     };
     this.stateSubject.next(state);
+    this.gameLoop()
   }
+
+  private gameLoop() {
+    const switched: Observable<Coordinates> = this.stateSubject.pipe(switchMap(x => this.playerService.makeMove(x)))
+    switched.subscribe(x => {
+        this.makeMove(x);
+        this.engineHelper.activePlayerChange(this.stateSubject.value)
+      }
+    )
+  }
+
 
   public makeMove(coordinates: Coordinates) {
 
@@ -60,24 +71,9 @@ initialize() {
       this.engineHelper.updateCellStates(state, coordinates);
       this.engineHelper.checkGameState(state, coordinates);
       this.stateSubject.next(state);
-
-      if (state.gameState !== GameState.INPROGRESS) {
-        return;
-      }
-
-      if (state.activePlayer === ActivePlayer.PLAYER1) {
-        state.activePlayer = ActivePlayer.PLAYER2;
-        // TODO: modify setTimeout
-        this.playerService.makeMove(state).then(
-          (value: Coordinates) => {this.makeMove(value);}
-        );
-        return;
-      } else {
-        state.activePlayer = ActivePlayer.PLAYER1;
-        return;
-      }
     } else {
-      return;
+      return
     }
   }
 }
+

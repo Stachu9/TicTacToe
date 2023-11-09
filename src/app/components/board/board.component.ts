@@ -16,8 +16,6 @@ import {CellState} from "../../services/game-engine/cell-state";
 export class BoardComponent implements OnInit, OnDestroy {
   state$: Observable<State>;
   private gameStateChangesSub: Subscription;
-  public ActivePlayer = ActivePlayer;
-  public CellState = CellState;
 
   constructor(
     private gameEngineService: GameEngineService,
