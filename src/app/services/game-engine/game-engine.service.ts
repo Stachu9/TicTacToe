@@ -6,16 +6,15 @@ import {BehaviorSubject, Observable, of, switchMap} from "rxjs";
 import {Coordinates} from "./coordinates";
 import {ActivePlayer} from "./activePlayer";
 import {EngineHelperService} from "./engine-helper.service";
-import {PlayerService} from "../player-service/player.service";
+import {PlayerTurn} from "./player-turn";
 
-@Injectable({
-  providedIn: 'root'
-})
+
 export class GameEngineService {
 
+  private playerService: PlayerTurn | undefined;
+
   constructor(
-    private engineHelper: EngineHelperService,
-    private playerService: PlayerService
+    private engineHelper: EngineHelperService
   ){}
 
   public get state$(): Observable<State> {
@@ -26,6 +25,7 @@ export class GameEngineService {
     boardState: [],
     gameState: GameState.WAITING_FOR_INIT,
     activePlayer: ActivePlayer.NONE
+
   });
 
   // TODO: convert into injection token
@@ -34,7 +34,10 @@ export class GameEngineService {
     width: 3
   }
 
-  initialize() {
+  public reset() {
+    if (!this.playerService) {
+      throw new Error("Player service not registered");
+    }
     const boardState: CellState[][] = [];
     for (let i = 0; i < this.boardDimensions.height; i++) {
       boardState[i] = [];
@@ -48,14 +51,19 @@ export class GameEngineService {
          activePlayer: ActivePlayer.PLAYER1
     };
     this.stateSubject.next(state);
-    this.gameLoop()
+    this.gameLoop();
+  }
+
+  public initialize(playerService: PlayerTurn) {
+    this.playerService = playerService;
+    this.reset();
   }
 
   private gameLoop() {
-    const switched: Observable<Coordinates> = this.stateSubject.pipe(switchMap(x => this.playerService.makeMove(x)))
+    const switched: Observable<Coordinates> = this.stateSubject.pipe(switchMap(x => this.playerService!.makeMove(x)))
     switched.subscribe(x => {
         this.makeMove(x);
-        this.engineHelper.activePlayerChange(this.stateSubject.value)
+        this.engineHelper.activePlayerChange(this.stateSubject.value);
       }
     )
   }
@@ -71,8 +79,6 @@ export class GameEngineService {
       this.engineHelper.updateCellStates(state, coordinates);
       this.engineHelper.checkGameState(state, coordinates);
       this.stateSubject.next(state);
-    } else {
-      return
     }
   }
 }

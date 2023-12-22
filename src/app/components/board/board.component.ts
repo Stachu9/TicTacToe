@@ -7,6 +7,9 @@ import {Coordinates} from "../../services/game-engine/coordinates";
 import {MessageService} from "../../services/game-engine/message.service";
 import {ActivePlayer} from "../../services/game-engine/activePlayer";
 import {CellState} from "../../services/game-engine/cell-state";
+import {EngineHelperService} from "../../services/game-engine/engine-helper.service";
+import {PlayerTurn} from "../../services/game-engine/player-turn";
+import {ComputerPlayerService} from "../../services/player-service/computer-player.service";
 
 @Component({
   selector: 'app-board',
@@ -16,12 +19,14 @@ import {CellState} from "../../services/game-engine/cell-state";
 export class BoardComponent implements OnInit, OnDestroy {
   state$: Observable<State>;
   private gameStateChangesSub: Subscription;
+  private gameEngineService: GameEngineService;
 
   constructor(
-    private gameEngineService: GameEngineService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private engineHelper: EngineHelperService,
   ) {
-    this.state$ = this.gameEngineService.state$
+    this.gameEngineService = new GameEngineService(engineHelper);
+    this.state$ = this.gameEngineService.state$;
     this.gameStateChangesSub = this.state$
       .pipe(
         map(state => state.gameState),
@@ -31,7 +36,9 @@ export class BoardComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // this.gameEngineService.state$.subscribe((v) => this.state = v);
-    this.resetGame();
+    // TODO change implementation to use factory design pattern
+    let playerService: PlayerTurn = new ComputerPlayerService(this.engineHelper);
+    this.gameEngineService.initialize(playerService);
   }
 
   ngOnDestroy(): void {
@@ -49,7 +56,7 @@ export class BoardComponent implements OnInit, OnDestroy {
   }
 
   public resetGame(): void {
-    this.gameEngineService.initialize();
+    this.gameEngineService.reset();
   }
 
   selectCell(coordinates: Coordinates) {

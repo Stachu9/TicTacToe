@@ -4,18 +4,19 @@ import {Coordinates} from "../game-engine/coordinates";
 import {GameState} from "../game-engine/game-state";
 import {EngineHelperService} from "../game-engine/engine-helper.service";
 import {Observable, of} from "rxjs";
+import {PlayerTurn} from "../game-engine/player-turn";
 
 @Injectable({
   providedIn: 'root'
 })
-export class PlayerService {
+export class ComputerPlayerService implements PlayerTurn {
 
   constructor(
     private engineHelper: EngineHelperService
   ) {
   }
 
-  calculateComputerMove(state: State): Coordinates {
+  private calculateComputerMove(state: State): Coordinates {
     let testWinningMove: Coordinates;
     let allowedMoves: Coordinates[] = [];
     for (let i = 0; i < 3; i++) {
